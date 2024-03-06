@@ -1,5 +1,7 @@
 import launch
 import launch_ros.actions
+from launch.conditions import IfCondition
+from launch.substitutions import PythonExpression
 
 
 def generate_launch_description():
@@ -55,6 +57,11 @@ def generate_launch_description():
                            "hero3", "hero4", "hero5", "hero6", "hero7", "hero8", "hero9"],
             description='Role names to identify ego vehicles. '
         ),
+        launch.actions.DeclareLaunchArgument(
+            name='error_injection',
+            default_value='False',
+            description='Whether launch error_injection node or not. '
+        ),
         launch_ros.actions.Node(
             package='carla_ros_bridge',
             executable='bridge',
@@ -62,6 +69,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty='True',
             on_exit=launch.actions.Shutdown(),
+            condition=IfCondition(PythonExpression([launch.substitutions.LaunchConfiguration('error_injection'), "==False"])),
             parameters=[
                 {
                     'use_sim_time': True
@@ -96,6 +104,55 @@ def generate_launch_description():
                 {
                     'ego_vehicle_role_name': launch.substitutions.LaunchConfiguration('ego_vehicle_role_name')
                 }
+            ]
+        ),
+        launch_ros.actions.Node(
+            package='carla_ros_bridge',
+            executable='bridge',
+            name='carla_ros_bridge',
+            output='screen',
+            emulate_tty='True',
+            on_exit=launch.actions.Shutdown(),
+            condition=IfCondition(PythonExpression([launch.substitutions.LaunchConfiguration('error_injection'), "==True"])),
+            parameters=[
+                {
+                    'use_sim_time': True
+                },
+                {
+                    'host': launch.substitutions.LaunchConfiguration('host')
+                },
+                {
+                    'port': launch.substitutions.LaunchConfiguration('port')
+                },
+                {
+                    'timeout': launch.substitutions.LaunchConfiguration('timeout')
+                },
+                {
+                    'passive': launch.substitutions.LaunchConfiguration('passive')
+                },
+                {
+                    'synchronous_mode': launch.substitutions.LaunchConfiguration('synchronous_mode')
+                },
+                {
+                    'synchronous_mode_wait_for_vehicle_control_command': launch.substitutions.LaunchConfiguration('synchronous_mode_wait_for_vehicle_control_command')
+                },
+                {
+                    'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds')
+                },
+                {
+                    'town': launch.substitutions.LaunchConfiguration('town')
+                },
+                {
+                    'register_all_sensors': launch.substitutions.LaunchConfiguration('register_all_sensors')
+                },
+                {
+                    'ego_vehicle_role_name': launch.substitutions.LaunchConfiguration('ego_vehicle_role_name')
+                }
+            ],
+            #remappings=PythonExpression(['"("/carla/objects","/carla/objects_original")" if "1" == "', launch.substitutions.LaunchConfiguration('error_injection'), '" else "("/carla/objects","/carla/objects")"'])
+            remappings=[
+                ("/carla/objects",
+                 "/carla/objects_original")
             ]
         )
     ])
