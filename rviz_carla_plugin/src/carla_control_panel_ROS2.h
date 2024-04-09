@@ -7,7 +7,7 @@
 #pragma once
 
 #include <OgreCamera.h>
-#include <carla_msgs/msg/carla_ego_vehicle_status.hpp>
+#include <carla_msgs/msg/carla_vehicle_status.hpp>
 #include <carla_msgs/msg/carla_status.hpp>
 #include <carla_msgs/msg/carla_control.hpp>
 #include <carla_ros_scenario_runner_types/msg/carla_scenario_list.hpp>
@@ -67,8 +67,8 @@ protected:
 
   void scenarioRunnerStatusChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus::SharedPtr msg);
   void carlaStatusChanged(const carla_msgs::msg::CarlaStatus::SharedPtr msg);
-  void egoVehicleStatusChanged(const carla_msgs::msg::CarlaEgoVehicleStatus::SharedPtr msg);
-  void egoVehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg);
+  void vehicleStatusChanged(const carla_msgs::msg::CarlaVehicleStatus::SharedPtr msg);
+  void vehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg);
   void carlaScenariosChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioList::SharedPtr msg);
   carla_msgs::msg::CarlaStatus::SharedPtr mCarlaStatus{nullptr};
 
@@ -89,10 +89,10 @@ protected:
   IndicatorWidget *mIndicatorWidget;
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr mTwistPublisher;
   rclcpp::Publisher<carla_msgs::msg::CarlaControl>::SharedPtr mCarlaControlPublisher;
-  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mEgoVehicleControlManualOverridePublisher;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mVehicleControlManualOverridePublisher;
   rclcpp::Subscription<carla_msgs::msg::CarlaStatus>::SharedPtr mCarlaStatusSubscriber;
-  rclcpp::Subscription<carla_msgs::msg::CarlaEgoVehicleStatus>::SharedPtr mEgoVehicleStatusSubscriber;
-  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr mEgoVehicleOdometrySubscriber;
+  rclcpp::Subscription<carla_msgs::msg::CarlaVehicleStatus>::SharedPtr mVehicleStatusSubscriber;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr mVehicleOdometrySubscriber;
   rclcpp::Client<carla_ros_scenario_runner_types::srv::ExecuteScenario>::SharedPtr mExecuteScenarioClient;
   rclcpp::Subscription<carla_ros_scenario_runner_types::msg::CarlaScenarioList>::SharedPtr mScenarioSubscriber;
   rclcpp::Subscription<carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus>::SharedPtr mScenarioRunnerStatusSubscriber;

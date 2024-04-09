@@ -132,15 +132,15 @@ CarlaControlPanel::CarlaControlPanel(QWidget *parent)
 
   mCarlaStatusSubscriber = mNodeHandle.subscribe("/carla/status", 1000, &CarlaControlPanel::carlaStatusChanged, this);
   mCarlaControlPublisher = mNodeHandle.advertise<carla_msgs::CarlaControl>("/carla/control", 10);
-  mEgoVehicleStatusSubscriber = mNodeHandle.subscribe(
-    "/carla/ego_vehicle/vehicle_status", 1000, &CarlaControlPanel::egoVehicleStatusChanged, this);
-  mEgoVehicleOdometrySubscriber
-    = mNodeHandle.subscribe("/carla/ego_vehicle/odometry", 1000, &CarlaControlPanel::egoVehicleOdometryChanged, this);
+  mVehicleStatusSubscriber = mNodeHandle.subscribe(
+    "/carla/ego_vehicle/vehicle_status", 1000, &CarlaControlPanel::vehicleStatusChanged, this);
+  mVehicleOdometrySubscriber
+    = mNodeHandle.subscribe("/carla/ego_vehicle/odometry", 1000, &CarlaControlPanel::vehicleOdometryChanged, this);
 
   mCameraPosePublisher
     = mNodeHandle.advertise<geometry_msgs::Pose>("carla/ego_vehicle/spectator_pose", 10, true);
 
-  mEgoVehicleControlManualOverridePublisher
+  mVehicleControlManualOverridePublisher
     = mNodeHandle.advertise<std_msgs::Bool>("/carla/ego_vehicle/vehicle_control_manual_override", 1, true);
 
   mExecuteScenarioClient
@@ -243,7 +243,7 @@ void CarlaControlPanel::overrideVehicleControl(int state)
     boolMsg.data = false;
     mDriveWidget->setEnabled(false);
   }
-  mEgoVehicleControlManualOverridePublisher.publish(boolMsg);
+  mVehicleControlManualOverridePublisher.publish(boolMsg);
 }
 
 void CarlaControlPanel::scenarioRunnerStatusChanged(
@@ -297,7 +297,7 @@ void CarlaControlPanel::carlaScenariosChanged(const carla_ros_scenario_runner_ty
   setScenarioRunnerStatus(mScenarioSelection->count() > 0);
 }
 
-void CarlaControlPanel::egoVehicleStatusChanged(const carla_msgs::CarlaEgoVehicleStatus::ConstPtr &msg)
+void CarlaControlPanel::vehicleStatusChanged(const carla_msgs::CarlaVehicleStatus::ConstPtr &msg)
 {
   mOverrideVehicleControl->setEnabled(true);
   mSteerBar->setValue(msg->control.steer * 100);
@@ -309,7 +309,7 @@ void CarlaControlPanel::egoVehicleStatusChanged(const carla_msgs::CarlaEgoVehicl
   mSpeedLabel->setText(speedStream.str().c_str());
 }
 
-void CarlaControlPanel::egoVehicleOdometryChanged(const nav_msgs::Odometry::ConstPtr &msg)
+void CarlaControlPanel::vehicleOdometryChanged(const nav_msgs::Odometry::ConstPtr &msg)
 {
   std::stringstream posStream;
   posStream << std::fixed << std::setprecision(2) << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y;
