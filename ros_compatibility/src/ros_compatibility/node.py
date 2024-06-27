@@ -269,7 +269,7 @@ elif ROS_VERSION == 2:
                     "Timeout of {}sec while waiting for service".format(timeout_sec))
             return client
 
-        def call_service(self, client, req, timeout=None, spin_until_response_received=False):
+        def call_service(self, client, req, timeout=None, spin_until_response_received=False, ignore_future_done=False):
             if not spin_until_response_received:
                 response = client.call(req)
                 return response
@@ -278,7 +278,7 @@ elif ROS_VERSION == 2:
                 rclpy.spin_until_future_complete(
                     self, future, self.executor, timeout)
 
-                if future.done():
+                if ignore_future_done or future.done():
                     return future.result()
                 else:
                     if timeout is not None:
