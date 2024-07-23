@@ -175,12 +175,10 @@ void CarlaControlPanel::onInitialize()
   _node = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
 
   // set up ros subscriber and publishers
-  mCarlaStatusSubscriber = _node->create_subscription<carla_msgs::msg::CarlaStatus>("/carla/world/status", rclcpp::SensorDataQoS().keep_last(10), std::bind(&CarlaControlPanel::carlaStatusChanged, this, _1));
+  mCarlaStatusSubscriber = _node->create_subscription<carla_msgs::msg::CarlaStatus>("/carla/world/status", rclcpp::SensorDataQoS().keep_last(10).transient_local(), std::bind(&CarlaControlPanel::carlaStatusChanged, this, _1));
   mCarlaControlPublisher = _node->create_publisher<carla_msgs::msg::CarlaControl>("/carla/world/control", 10);
   mVehicleStatusSubscriber 
     = _node->create_subscription<carla_msgs::msg::CarlaVehicleStatus>("/carla/vehicles/hero/vehicle_status", 1000, std::bind(&CarlaControlPanel::vehicleStatusChanged, this, _1));
-  mVehicleOdometrySubscriber
-    = _node->create_subscription<nav_msgs::msg::Odometry>("/carla/vehicles/hero/odometry", 1000, std::bind(&CarlaControlPanel::vehicleOdometryChanged, this, _1));
 
   auto qos_latch_10 = rclcpp::QoS( rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_LAST, 10));
   qos_latch_10.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
@@ -313,16 +311,13 @@ void CarlaControlPanel::vehicleStatusChanged(const carla_msgs::msg::CarlaVehicle
   std::stringstream speedStream;
   speedStream << std::fixed << std::setprecision(2) << msg->velocity * 3.6;
   mSpeedLabel->setText(speedStream.str().c_str());
-}
 
-void CarlaControlPanel::vehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg)
-{
   std::stringstream posStream;
-  posStream << std::fixed << std::setprecision(2) << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y;
+  posStream << std::fixed << std::setprecision(2) << msg->pose.position.x << ", " << msg->pose.position.y;
   mPosLabel->setText(posStream.str().c_str());
 
   std::stringstream headingStream;
-  headingStream << std::fixed << std::setprecision(2) << tf2::getYaw(msg->pose.pose.orientation);
+  headingStream << std::fixed << std::setprecision(2) << tf2::getYaw(msg->pose.orientation);
   mHeadingLabel->setText(headingStream.str().c_str());
 }
 
@@ -347,11 +342,11 @@ void CarlaControlPanel::setSimulationButtonStatus(bool active)
 void CarlaControlPanel::carlaStatusChanged(const carla_msgs::msg::CarlaStatus::SharedPtr msg)
 {
   mCarlaStatus = msg;
-  setSimulationButtonStatus(mCarlaStatus->synchronous_mode);
+  setSimulationButtonStatus(mCarlaStatus->episode_settings.synchronous_mode);
 
-  if (mCarlaStatus->synchronous_mode)
+  if (mCarlaStatus->episode_settings.synchronous_mode)
   {
-    if (mCarlaStatus->synchronous_mode_running)
+    if (mCarlaStatus->game_running)
     {
       QPixmap pixmap(":/icons/pause.png");
       QIcon iconPause(pixmap);
@@ -378,7 +373,7 @@ void CarlaControlPanel::carlaTogglePlayPause()
   if (mCarlaStatus)
   {
     carla_msgs::msg::CarlaControl ctrl;
-    if (mCarlaStatus->synchronous_mode_running)
+    if (mCarlaStatus->game_running)
     {
       ctrl.command = carla_msgs::msg::CarlaControl::PAUSE;
     }

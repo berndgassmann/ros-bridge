@@ -12,7 +12,6 @@
 #include <carla_msgs/msg/carla_control.hpp>
 #include <carla_ros_scenario_runner_types/msg/carla_scenario_list.hpp>
 #include <carla_ros_scenario_runner_types/msg/carla_scenario_runner_status.hpp>
-#include <nav_msgs/msg/odometry.hpp>
 #include "rclcpp/rclcpp.hpp"
 #include <rviz_common/panel.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -68,7 +67,6 @@ protected:
   void scenarioRunnerStatusChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus::SharedPtr msg);
   void carlaStatusChanged(const carla_msgs::msg::CarlaStatus::SharedPtr msg);
   void vehicleStatusChanged(const carla_msgs::msg::CarlaVehicleStatus::SharedPtr msg);
-  void vehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg);
   void carlaScenariosChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioList::SharedPtr msg);
   carla_msgs::msg::CarlaStatus::SharedPtr mCarlaStatus{nullptr};
 
@@ -92,7 +90,6 @@ protected:
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mVehicleControlManualOverridePublisher;
   rclcpp::Subscription<carla_msgs::msg::CarlaStatus>::SharedPtr mCarlaStatusSubscriber;
   rclcpp::Subscription<carla_msgs::msg::CarlaVehicleStatus>::SharedPtr mVehicleStatusSubscriber;
-  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr mVehicleOdometrySubscriber;
   rclcpp::Client<carla_ros_scenario_runner_types::srv::ExecuteScenario>::SharedPtr mExecuteScenarioClient;
   rclcpp::Subscription<carla_ros_scenario_runner_types::msg::CarlaScenarioList>::SharedPtr mScenarioSubscriber;
   rclcpp::Subscription<carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus>::SharedPtr mScenarioRunnerStatusSubscriber;
