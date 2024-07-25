@@ -21,12 +21,12 @@ from ros_compatibility.qos import QoSProfile, DurabilityPolicy
 from carla_ad_agent.agent import Agent, AgentState
 
 from carla_msgs.msg import (
-    CarlaEgoVehicleInfo,
+    CarlaVehicleInfo,
+    CarlaVehicleStatus,
     CarlaActorList,
     CarlaTrafficLightStatusList,
     CarlaTrafficLightInfoList)
 from derived_object_msgs.msg import ObjectArray
-from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64  # pylint: disable=import-error
 
 
@@ -47,25 +47,33 @@ class CarlaAdAgent(Agent):
         self.data_lock = threading.Lock()
 
         self._ego_vehicle_pose = None
+        self._ego_vehicle_id = None
         self._objects = {}
         self._lights_status = {}
         self._lights_info = {}
         self._target_speed = 0.
 
         self.speed_command_publisher = self.new_publisher(
-            Float64, "/carla/{}/speed_command".format(role_name),
+            Float64, "/carla/vehicles/{}/speed_command".format(role_name),
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
-        self._odometry_subscriber = self.new_subscription(
-            Odometry,
-            "/carla/{}/odometry".format(role_name),
-            self.odometry_cb,
+        self._vehicle_status_subscriber = self.new_subscription(
+            CarlaVehicleStatus,
+            "/carla/vehicles/{}/vehicle_status".format(role_name),
+            self.vehicle_status_cb,
             qos_profile=10
+        )
+
+        self._vehicle_info_subscriber = self.new_subscription(
+            CarlaVehicleInfo,
+            "/carla/vehicles/{}/vehicle_info".format(role_name),
+            self.vehicle_info_cb,
+            qos_profile=1
         )
 
         self._target_speed_subscriber = self.new_subscription(
             Float64,
-            "/carla/{}/target_speed".format(role_name),
+            "/carla/vehicles/{}/target_speed".format(role_name),
             self.target_speed_cb,
             qos_profile=QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         )
@@ -74,7 +82,7 @@ class CarlaAdAgent(Agent):
 
             self._objects_subscriber = self.new_subscription(
                 ObjectArray,
-                "/carla/{}/objects".format(role_name),
+                "/carla/world/objects".format(role_name),
                 self.objects_cb,
                 qos_profile=10
             )
@@ -91,9 +99,14 @@ class CarlaAdAgent(Agent):
                 qos_profile=QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL)
             )
 
-    def odometry_cb(self, odometry_msg):
+    def vehicle_info_cb(self, vehicle_info_msg):
         with self.data_lock:
-            self._ego_vehicle_pose = odometry_msg.pose.pose
+            self._ego_vehicle_id = vehicle_info_msg.id
+            self._objects.pop(self._ego_vehicle_id)
+
+    def vehicle_status_cb(self, vehicle_status_msg):
+        with self.data_lock:
+            self._ego_vehicle_pose = vehicle_status_msg.pose
 
     def target_speed_cb(self, target_speed_msg):
         with self.data_lock:
@@ -102,7 +115,8 @@ class CarlaAdAgent(Agent):
     def objects_cb(self, objects_msg):
         objects = {}
         for obj in objects_msg.objects:
-            objects[obj.id] = obj
+            if obj.id != self._ego_vehicle_id:
+                objects[obj.id] = obj
 
         with self.data_lock:
             self._objects = objects

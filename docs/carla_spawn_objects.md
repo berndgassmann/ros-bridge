@@ -85,7 +85,7 @@ All sensor attributes are defined as described in the [blueprint library](https:
 
 ### Respawning vehicles
 
-A vehicle can be respawned to a different location during a simulation by publishing to the topic `/carla/<ROLE NAME>/<CONTROLLER_ID>/initialpose`. To use this functionality:
+A vehicle can be respawned to a different location during a simulation by publishing to the topic `/carla/vehicles/<ROLE NAME>/<CONTROLLER_ID>/initialpose`. To use this functionality:
 
 1. Attach an `actor.pseudo.control` pseudo-actor to the vehicle in the `.json` file. It should have the same `id` value as the value passed as `<CONTROLLER_ID>` used to publish to the topic:
 

@@ -65,9 +65,9 @@ from ros_compatibility.node import CompatibleNode
 from ros_compatibility.qos import QoSProfile, DurabilityPolicy
 
 from carla_msgs.msg import CarlaStatus
-from carla_msgs.msg import CarlaEgoVehicleInfo
-from carla_msgs.msg import CarlaEgoVehicleStatus
-from carla_msgs.msg import CarlaEgoVehicleControl
+from carla_msgs.msg import CarlaVehicleInfo
+from carla_msgs.msg import CarlaVehicleStatus
+from carla_msgs.msg import CarlaVehicleControl
 from carla_msgs.msg import CarlaLaneInvasionEvent
 from carla_msgs.msg import CarlaCollisionEvent
 from nav_msgs.msg import Odometry
@@ -93,15 +93,15 @@ class ManualControl(CompatibleNode):
         self.controller = KeyboardControl(self.role_name, self.hud, self)
 
         self.image_subscriber = self.new_subscription(
-            Image, "/carla/{}/rgb_view/image".format(self.role_name),
+            Image, "/carla/vehicles/{}/rgb_view/image".format(self.role_name),
             self.on_view_image, qos_profile=10)
 
         self.collision_subscriber = self.new_subscription(
-            CarlaCollisionEvent, "/carla/{}/collision".format(self.role_name),
+            CarlaCollisionEvent, "/carla/vehicles/{}/collision".format(self.role_name),
             self.on_collision, qos_profile=10)
 
         self.lane_invasion_subscriber = self.new_subscription(
-            CarlaLaneInvasionEvent, "/carla/{}/lane_invasion".format(self.role_name),
+            CarlaLaneInvasionEvent, "/carla/vehicles/{}/lane_invasion".format(self.role_name),
             self.on_lane_invasion, qos_profile=10)
 
     def on_collision(self, data):
@@ -169,7 +169,7 @@ class KeyboardControl(object):
         self.node = node
 
         self._autopilot_enabled = False
-        self._control = CarlaEgoVehicleControl()
+        self._control = CarlaVehicleControl()
         self._steer_cache = 0.0
 
         fast_qos = QoSProfile(depth=10)
@@ -177,19 +177,19 @@ class KeyboardControl(object):
 
         self.vehicle_control_manual_override_publisher = self.node.new_publisher(
             Bool,
-            "/carla/{}/vehicle_control_manual_override".format(self.role_name),
+            "/carla/vehicles/{}/vehicle_control_manual_override".format(self.role_name),
             qos_profile=fast_latched_qos)
 
         self.vehicle_control_manual_override = False
 
         self.auto_pilot_enable_publisher = self.node.new_publisher(
             Bool,
-            "/carla/{}/enable_autopilot".format(self.role_name),
+            "/carla/vehicles/{}/enable_autopilot".format(self.role_name),
             qos_profile=fast_qos)
 
         self.vehicle_control_publisher = self.node.new_publisher(
-            CarlaEgoVehicleControl,
-            "/carla/{}/vehicle_control_cmd_manual".format(self.role_name),
+            CarlaVehicleControl,
+            "/carla/vehicles/{}/control/vehicle_control_cmd_manual".format(self.role_name),
             qos_profile=fast_qos)
 
         self.carla_status_subscriber = self.node.new_subscription(
@@ -314,16 +314,16 @@ class HUD(object):
         self.help = HelpText(pygame.font.Font(mono, 24), width, height)
         self._show_info = True
         self._info_text = []
-        self.vehicle_status = CarlaEgoVehicleStatus()
+        self.vehicle_status = CarlaVehicleStatus()
 
         self.vehicle_status_subscriber = node.new_subscription(
-            CarlaEgoVehicleStatus, "/carla/{}/vehicle_status".format(self.role_name),
+            CarlaVehicleStatus, "/carla/vehicles/{}/vehicle_status".format(self.role_name),
             self.vehicle_status_updated, qos_profile=10)
 
-        self.vehicle_info = CarlaEgoVehicleInfo()
+        self.vehicle_info = CarlaVehicleInfo()
         self.vehicle_info_subscriber = node.new_subscription(
-            CarlaEgoVehicleInfo,
-            "/carla/{}/vehicle_info".format(self.role_name),
+            CarlaVehicleInfo,
+            "/carla/vehicles/{}/vehicle_info".format(self.role_name),
             self.vehicle_info_updated, 
             qos_profile=QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
@@ -335,20 +335,20 @@ class HUD(object):
 
         self.gnss_subscriber = node.new_subscription(
             NavSatFix,
-            "/carla/{}/gnss".format(self.role_name),
+            "/carla/vehicles/{}/gnss".format(self.role_name),
             self.gnss_updated,
             qos_profile=10)
 
-        self.odometry_subscriber = node.new_subscription(
+        self.vehicle_status_subscriber = node.new_subscription(
             Odometry,
-            "/carla/{}/odometry".format(self.role_name),
-            self.odometry_updated,
+            "/carla/vehicles/{}/vehicle_status".format(self.role_name),
+            self.vehicle_status_updated,
             qos_profile=10
         )
 
         self.manual_control_subscriber = node.new_subscription(
             Bool,
-            "/carla/{}/vehicle_control_manual_override".format(self.role_name),
+            "/carla/vehicles/{}/vehicle_control_manual_override".format(self.role_name),
             self.manual_control_override_updated,
             qos_profile=10)
 
@@ -401,7 +401,7 @@ class HUD(object):
         self.longitude = data.longitude
         self.update_info_text()
 
-    def odometry_updated(self, data):
+    def vehicle_status_updated(self, data):
         self.x = data.pose.pose.position.x
         self.y = data.pose.pose.position.y
         self.z = data.pose.pose.position.z

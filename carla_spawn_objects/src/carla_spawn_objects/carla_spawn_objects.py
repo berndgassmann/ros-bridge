@@ -5,7 +5,7 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 """
-base class for spawning objects (carla actors and pseudo_actors) in ROS
+base class for spawning objects (carla actors) in ROS
 
 Gets config file from ros parameter ~objects_definition_file and spawns corresponding objects
 through ROS service /carla/spawn_object.
