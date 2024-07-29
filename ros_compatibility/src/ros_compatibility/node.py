@@ -123,11 +123,16 @@ elif ROS_VERSION == 2:
         ros_compatibility.qos.DurabilityPolicy.TRANSIENT_LOCAL: rclpy.qos.DurabilityPolicy.TRANSIENT_LOCAL,
         ros_compatibility.qos.DurabilityPolicy.VOLATILE: rclpy.qos.DurabilityPolicy.VOLATILE
     }
-
+    _RELIABILITY_POLICY_MAP = {
+        ros_compatibility.qos.ReliabilityPolicy.BEST_EFFORT: rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
+        ros_compatibility.qos.ReliabilityPolicy.RELIABLE: rclpy.qos.ReliabilityPolicy.RELIABLE
+    }
+ 
     def _get_rclpy_qos_profile(qos_profile):
         return rclpy.qos.QoSProfile(
             depth=qos_profile.depth,
-            durability=_DURABILITY_POLICY_MAP[qos_profile.durability]
+            durability=_DURABILITY_POLICY_MAP[qos_profile.durability],
+            reliability=_RELIABILITY_POLICY_MAP[qos_profile.reliability]
         )
 
     class CompatibleNode(Node):

@@ -16,7 +16,7 @@ import threading
 
 import ros_compatibility as roscomp
 from ros_compatibility.node import CompatibleNode
-from ros_compatibility.qos import QoSProfile, DurabilityPolicy
+from ros_compatibility.qos import QoSProfile, DurabilityPolicy, QoSProfileSubscriber
 
 from carla_ad_agent.vehicle_pid_controller import VehiclePIDController
 from carla_ad_agent.misc import distance_vehicle
@@ -73,7 +73,7 @@ class LocalPlanner(CompatibleNode):
             CarlaVehicleStatus,
             "/carla/vehicles/{}/vehicle_status".format(role_name),
             self.vehicle_status_cb,
-            qos_profile=10)
+            QoSProfileSubscriber(depth=10))
         self._path_subscriber = self.new_subscription(
             Path,
             "/carla/vehicles/{}/waypoints".format(role_name),

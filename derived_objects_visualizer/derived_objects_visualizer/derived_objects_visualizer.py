@@ -10,9 +10,9 @@ from visualization_msgs.msg import Marker, MarkerArray
 import tf2_ros
 
 
-class ObjectVisualizer(Node):
+class DerivedObjectsVisualizer(Node):
     def __init__(self):
-        super().__init__('object_visualizer')
+        super().__init__('derived_objects_visualizer')
 
         self.declare_parameter("objects_topic", value="/carla/world/objects_with_covariance")
 
