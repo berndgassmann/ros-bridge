@@ -122,17 +122,16 @@ Static information regarding a wheel that will be part of a [CarlaVehicleInfo.ms
 
 ---
 
-## CarlaVehicleStatus.msg
+## CarlaVehicleControlStatus.msg
 
-Current status of the vehicle as an object in the world.  
+Current status of the vehicle control settings.  
 
 | Field                                                                     | Type                                                                      | Description                                                               |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `header`                                                                  | [Header](https://docs.ros.org/en/melodic/api/std_msgs/html/msg/Header.html) | Time stamp and frame ID when the message is published.                    |
-| `velocity`                                                                | float32                                                                   | Current speed of the vehicle.                                             |
-| `acceleration`                                                            | geometry\_msgs/Accel                                                      | Current acceleration of the vehicle.                                      |
-| `orientation`                                                             | geometry\_msgs/Quaternion                                                 | Current orientation of the vehicle.                                       |
-| `control`                                                                 | [CarlaVehicleControl](<#carlavehiclecontrolmsg>)                    | Current control values as reported by CARLA.                              |
+| `active_control_type`                                                                 | {VEHICLE_CONTROL, ACKERMANN_CONTROL}                                | Current active control type as reported by CARLA.                              |
+| `last_applied_vehicle_control`                                                        | [CarlaVehicleControl](<#carlavehiclecontrolmsg>)                    | Current control values as reported by CARLA.                              |
+| `last_applied_ackermann_control`                                                        | AckermannDriveStamped                                             | Current ackermann control values as reported by CARLA.                              |
+
 
 ---
 

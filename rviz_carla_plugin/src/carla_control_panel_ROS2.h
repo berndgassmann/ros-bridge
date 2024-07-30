@@ -6,20 +6,21 @@
  */
 #pragma once
 
-#include <OgreCamera.h>
-#include <carla_msgs/msg/carla_vehicle_status.hpp>
-#include <carla_msgs/msg/carla_status.hpp>
 #include <carla_msgs/msg/carla_control.hpp>
+#include <carla_msgs/msg/carla_status.hpp>
+#include <carla_msgs/msg/carla_vehicle_control_status.hpp>
 #include <carla_ros_scenario_runner_types/msg/carla_scenario_list.hpp>
 #include <carla_ros_scenario_runner_types/msg/carla_scenario_runner_status.hpp>
-#include "rclcpp/rclcpp.hpp"
-#include <rviz_common/panel.hpp>
-#include <std_msgs/msg/bool.hpp>
 #include <carla_ros_scenario_runner_types/srv/execute_scenario.hpp>
-#include <geometry_msgs/msg/pose.hpp>
-#include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <OgreCamera.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/float32.hpp>
+
+#include "rviz_common/panel.hpp"
 #include "rviz_common/ros_integration/ros_node_abstraction_iface.hpp"
-#include <rviz_common/frame_position_tracking_view_controller.hpp>
+#include "rviz_common/frame_position_tracking_view_controller.hpp"
 
 class QLineEdit;
 class QPushButton;
@@ -66,7 +67,9 @@ protected:
 
   void scenarioRunnerStatusChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus::SharedPtr msg);
   void carlaStatusChanged(const carla_msgs::msg::CarlaStatus::SharedPtr msg);
-  void vehicleStatusChanged(const carla_msgs::msg::CarlaVehicleStatus::SharedPtr msg);
+  void vehicleControlStatusChanged(const carla_msgs::msg::CarlaVehicleControlStatus::SharedPtr msg);
+  void vehicleSpeedChanged(const std_msgs::msg::Float32::SharedPtr msg);
+  void vehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg);
   void carlaScenariosChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioList::SharedPtr msg);
   carla_msgs::msg::CarlaStatus::SharedPtr mCarlaStatus{nullptr};
 
@@ -89,7 +92,9 @@ protected:
   rclcpp::Publisher<carla_msgs::msg::CarlaControl>::SharedPtr mCarlaControlPublisher;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mVehicleControlManualOverridePublisher;
   rclcpp::Subscription<carla_msgs::msg::CarlaStatus>::SharedPtr mCarlaStatusSubscriber;
-  rclcpp::Subscription<carla_msgs::msg::CarlaVehicleStatus>::SharedPtr mVehicleStatusSubscriber;
+  rclcpp::Subscription<carla_msgs::msg::CarlaVehicleControlStatus>::SharedPtr mVehicleControlStatusSubscriber;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr mVehicleOdometrySubscriber;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr mVehicleSpeedSubscriber;
   rclcpp::Client<carla_ros_scenario_runner_types::srv::ExecuteScenario>::SharedPtr mExecuteScenarioClient;
   rclcpp::Subscription<carla_ros_scenario_runner_types::msg::CarlaScenarioList>::SharedPtr mScenarioSubscriber;
   rclcpp::Subscription<carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus>::SharedPtr mScenarioRunnerStatusSubscriber;

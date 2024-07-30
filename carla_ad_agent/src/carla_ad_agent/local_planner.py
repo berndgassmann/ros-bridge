@@ -21,8 +21,8 @@ from ros_compatibility.qos import QoSProfile, DurabilityPolicy, QoSProfileSubscr
 from carla_ad_agent.vehicle_pid_controller import VehiclePIDController
 from carla_ad_agent.misc import distance_vehicle
 
-from carla_msgs.msg import CarlaVehicleControl, CarlaVehicleStatus  # pylint: disable=import-error
-from nav_msgs.msg import Path
+from carla_msgs.msg import CarlaVehicleControl  # pylint: disable=import-error
+from nav_msgs.msg import Odometry, Path
 from std_msgs.msg import Float64
 from visualization_msgs.msg import Marker
 
@@ -69,10 +69,10 @@ class LocalPlanner(CompatibleNode):
         self._waypoint_buffer = collections.deque(maxlen=self._buffer_size)
 
         # subscribers
-        self._vehicle_status_subscriber = self.new_subscription(
-            CarlaVehicleStatus,
-            "/carla/vehicles/{}/vehicle_status".format(role_name),
-            self.vehicle_status_cb,
+        self._odometry_subscriber = self.new_subscription(
+            Odometry,
+            "/carla/vehicles/{}/odometry".format(role_name),
+            self.odometry_cb,
             QoSProfileSubscriber(depth=10))
         self._path_subscriber = self.new_subscription(
             Path,
@@ -99,24 +99,27 @@ class LocalPlanner(CompatibleNode):
         self._vehicle_controller = VehiclePIDController(
             self, args_lateral=args_lateral_dict, args_longitudinal=args_longitudinal_dict)
 
-    def vehicle_status_cb(self, vehicle_status_msg):
+    def odometry_cb(self, odometry_msg):
         with self.data_lock:
-            self._current_header = vehicle_status_msg.header
-            self._current_header.frame_id = vehicle_status_msg.child_frame_id
-            self._current_pose = vehicle_status_msg.pose
-            self._current_speed = math.sqrt(vehicle_status_msg.twist.linear.x ** 2 +
-                                            vehicle_status_msg.twist.linear.y ** 2 +
-                                            vehicle_status_msg.twist.linear.z ** 2) * 3.6
+            self._current_header = odometry_msg.header
+            self._current_header.frame_id = odometry_msg.child_frame_id
+            self._current_pose = odometry_msg.pose.pose
+            self._current_speed = math.sqrt(odometry_msg.twist.twist.linear.x ** 2 +
+                                            odometry_msg.twist.twist.linear.y ** 2 +
+                                            odometry_msg.twist.twist.linear.z ** 2) * 3.6
+            self.loginfo("Receiving odometry: speed={}".format(self._current_speed))
 
     def target_speed_cb(self, target_speed_msg):
         with self.data_lock:
             self._target_speed = target_speed_msg.data
+            self.loginfo("Receiving target_speed: target_speed={}".format(self._target_speed))
 
     def path_cb(self, path_msg):
         with self.data_lock:
             self._waypoint_buffer.clear()
             self._waypoints_queue.clear()
             self._waypoints_queue.extend([pose.pose for pose in path_msg.poses])
+            self.loginfo("Receiving route: resulting queue {}".format(self._waypoints_queue))
 
     def pose_to_marker_msg(self, pose):
         marker_msg = Marker()
@@ -142,7 +145,7 @@ class LocalPlanner(CompatibleNode):
                 return
 
             if (self._current_pose is None) or (self._current_speed is None) or (self._current_header is None):
-                self.loginfo("Waiting for first vehicle_status message...")
+                self.loginfo("Waiting for first odometry message...")
                 self.emergency_stop()
                 return
 

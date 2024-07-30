@@ -120,7 +120,7 @@ __2.__ In another terminal, publish to the topic `/carla/vehicles/<ROLE NAME>/co
 
 ```
 
-The current status of the vehicle can be received via topic `/carla/vehicles/<ROLE NAME>/vehicle_status`. Static information about the vehicle can be received via `/carla/vehicles/<ROLE NAME>/vehicle_info`.
+The current control status of the vehicle can be received via topic `/carla/vehicles/<ROLE NAME>/vehicle_constrol_status`. Static information about the vehicle can be received via `/carla/vehicles/<ROLE NAME>/vehicle_info`.
 
 It is possible to use [AckermannDrive](https://docs.ros.org/en/api/ackermann_msgs/html/msg/AckermannDrive.html) messages to control the ego vehicles. This can be achieved by publishing to the topic 
 ```sh

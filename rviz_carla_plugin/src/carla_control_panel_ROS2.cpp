@@ -177,8 +177,10 @@ void CarlaControlPanel::onInitialize()
   // set up ros subscriber and publishers
   mCarlaStatusSubscriber = _node->create_subscription<carla_msgs::msg::CarlaStatus>("/carla/world/status", rclcpp::SensorDataQoS().keep_last(10).transient_local(), std::bind(&CarlaControlPanel::carlaStatusChanged, this, _1));
   mCarlaControlPublisher = _node->create_publisher<carla_msgs::msg::CarlaControl>("/carla/world/control", 10);
-  mVehicleStatusSubscriber 
-    = _node->create_subscription<carla_msgs::msg::CarlaVehicleStatus>("/carla/vehicles/hero/vehicle_status", 1000, std::bind(&CarlaControlPanel::vehicleStatusChanged, this, _1));
+  mVehicleControlStatusSubscriber 
+    = _node->create_subscription<carla_msgs::msg::CarlaVehicleControlStatus>("/carla/vehicles/hero/vehicle_control_status", 1000, std::bind(&CarlaControlPanel::vehicleControlStatusChanged, this, _1));
+  mVehicleOdometrySubscriber = _node->create_subscription<nav_msgs::msg::Odometry>("/carla/vehicles/hero/odometry", 1000, std::bind(&CarlaControlPanel::vehicleOdometryChanged, this, _1));
+  mVehicleSpeedSubscriber = _node->create_subscription<std_msgs::msg::Float32>("/carla/vehicles/hero/speed", 1000, std::bind(&CarlaControlPanel::vehicleSpeedChanged, this, _1));
 
   auto qos_latch_10 = rclcpp::QoS( rclcpp::QoSInitialization(RMW_QOS_POLICY_HISTORY_KEEP_LAST, 10));
   qos_latch_10.durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
@@ -301,23 +303,29 @@ void CarlaControlPanel::carlaScenariosChanged(const carla_ros_scenario_runner_ty
   setScenarioRunnerStatus(mScenarioSelection->count() > 0);
 }
 
-void CarlaControlPanel::vehicleStatusChanged(const carla_msgs::msg::CarlaVehicleStatus::SharedPtr msg)
+void CarlaControlPanel::vehicleControlStatusChanged(const carla_msgs::msg::CarlaVehicleControlStatus::SharedPtr msg)
 {
   mOverrideVehicleControl->setEnabled(true);
   mSteerBar->setValue(msg->last_applied_vehicle_control.steer * 100);
   mThrottleBar->setValue(msg->last_applied_vehicle_control.throttle * 100);
   mBrakeBar->setValue(msg->last_applied_vehicle_control.brake * 100);
+}
 
+void CarlaControlPanel::vehicleSpeedChanged(const std_msgs::msg::Float32::SharedPtr msg)
+{
   std::stringstream speedStream;
-  speedStream << std::fixed << std::setprecision(2) << msg->velocity * 3.6;
+  speedStream << std::fixed << std::setprecision(2) << msg->data * 3.6;
   mSpeedLabel->setText(speedStream.str().c_str());
+}
 
+void CarlaControlPanel::vehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg)
+{
   std::stringstream posStream;
-  posStream << std::fixed << std::setprecision(2) << msg->pose.position.x << ", " << msg->pose.position.y;
+  posStream << std::fixed << std::setprecision(2) << msg->pose.pose.position.x << ", " << msg->pose.pose.position.y;
   mPosLabel->setText(posStream.str().c_str());
 
   std::stringstream headingStream;
-  headingStream << std::fixed << std::setprecision(2) << tf2::getYaw(msg->pose.orientation);
+  headingStream << std::fixed << std::setprecision(2) << tf2::getYaw(msg->pose.pose.orientation);
   mHeadingLabel->setText(headingStream.str().c_str());
 }
 
