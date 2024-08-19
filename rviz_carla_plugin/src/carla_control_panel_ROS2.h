@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <carla_msgs/msg/carla_actor_list.hpp>
 #include <carla_msgs/msg/carla_control.hpp>
 #include <carla_msgs/msg/carla_status.hpp>
 #include <carla_msgs/msg/carla_vehicle_control_status.hpp>
@@ -49,6 +50,7 @@ public Q_SLOTS:
 
 protected Q_SLOTS:
   void sendVel();
+  void onConnectToVehicle(const QString &vehicleTopicPrefix);
 
   void carlaStepOnce();
   void carlaTogglePlayPause();
@@ -62,11 +64,13 @@ protected:
   virtual void cameraPreRenderScene(Ogre::Camera *cam) override;
 
   virtual void onInitialize() override;
+
   void setSimulationButtonStatus(bool active);
   void setScenarioRunnerStatus(bool active);
 
   void scenarioRunnerStatusChanged(const carla_ros_scenario_runner_types::msg::CarlaScenarioRunnerStatus::SharedPtr msg);
   void carlaStatusChanged(const carla_msgs::msg::CarlaStatus::SharedPtr msg);
+  void carlaActorListChanged(const carla_msgs::msg::CarlaActorList::SharedPtr msg);
   void vehicleControlStatusChanged(const carla_msgs::msg::CarlaVehicleControlStatus::SharedPtr msg);
   void vehicleSpeedChanged(const std_msgs::msg::Float32::SharedPtr msg);
   void vehicleOdometryChanged(const nav_msgs::msg::Odometry::SharedPtr msg);
@@ -75,6 +79,7 @@ protected:
 
   rclcpp::Node::SharedPtr _node;
 
+  QComboBox *mEgoVehileSelection;
   DriveWidget *mDriveWidget;
   QPushButton *mTriggerScenarioButton;
   QPushButton *mPlayPauseButton;
@@ -92,6 +97,7 @@ protected:
   rclcpp::Publisher<carla_msgs::msg::CarlaControl>::SharedPtr mCarlaControlPublisher;
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr mVehicleControlManualOverridePublisher;
   rclcpp::Subscription<carla_msgs::msg::CarlaStatus>::SharedPtr mCarlaStatusSubscriber;
+  rclcpp::Subscription<carla_msgs::msg::CarlaActorList>::SharedPtr mCarlaActorListSubscriber;
   rclcpp::Subscription<carla_msgs::msg::CarlaVehicleControlStatus>::SharedPtr mVehicleControlStatusSubscriber;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr mVehicleOdometrySubscriber;
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr mVehicleSpeedSubscriber;
@@ -102,10 +108,10 @@ protected:
 
   carla_ros_scenario_runner_types::msg::CarlaScenarioList::SharedPtr mCarlaScenarios;
 
-
   float mLinearVelocity{0.0};
   float mAngularVelocity{0.0};
   bool mVehicleControlManualOverride{false};
+  std::string mVehicleTopicPrefix;
   rviz_common::FramePositionTrackingViewController *mViewController{nullptr};
   Ogre::Vector3 mCameraCurrentPosition;
   Ogre::Quaternion mCameraCurrentOrientation;
