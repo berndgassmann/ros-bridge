@@ -107,19 +107,19 @@ class LocalPlanner(CompatibleNode):
             self._current_speed = math.sqrt(odometry_msg.twist.twist.linear.x ** 2 +
                                             odometry_msg.twist.twist.linear.y ** 2 +
                                             odometry_msg.twist.twist.linear.z ** 2) * 3.6
-            self.loginfo("Receiving odometry: speed={}".format(self._current_speed))
+            self.logdebug("Receiving odometry: speed={}".format(self._current_speed))
 
     def target_speed_cb(self, target_speed_msg):
         with self.data_lock:
             self._target_speed = target_speed_msg.data
-            self.loginfo("Receiving target_speed: target_speed={}".format(self._target_speed))
+            self.logdebug("Receiving target_speed: target_speed={}".format(self._target_speed))
 
     def path_cb(self, path_msg):
         with self.data_lock:
             self._waypoint_buffer.clear()
             self._waypoints_queue.clear()
             self._waypoints_queue.extend([pose.pose for pose in path_msg.poses])
-            self.loginfo("Receiving route: resulting queue {}".format(self._waypoints_queue))
+            self.logdebug("Receiving route: resulting queue {}".format(self._waypoints_queue))
 
     def pose_to_marker_msg(self, pose):
         marker_msg = Marker()
