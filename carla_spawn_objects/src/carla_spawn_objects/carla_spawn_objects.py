@@ -57,14 +57,15 @@ class CarlaSpawnObjects(CompatibleNode):
         self.destroy_object_service = self.new_client(DestroyObject, "/carla/world/destroy_object")
 
     def spawn_object(self, spawn_object_request):
-        response_id = -1
-        response = self.call_service(self.spawn_object_service, spawn_object_request, spin_until_response_received=True)
-        response_id = response.id
         role_name = ""
         for attribute in spawn_object_request.blueprint.attributes:
             if attribute.key == "role_name":
                 role_name = attribute.value
                 break
+        self.logwarn("Requesting to spawn object (type='{}', id='{}').".format(spawn_object_request.blueprint.id, role_name))
+        response_id = -1
+        response = self.call_service(self.spawn_object_service, spawn_object_request, spin_until_response_received=True)
+        response_id = response.id
         if response_id != -1:
             self.loginfo("Object (id='{}', role_name='{}') spawned successfully as {}.".format(
                 spawn_object_request.blueprint.id, role_name, response_id))
@@ -189,6 +190,7 @@ class CarlaSpawnObjects(CompatibleNode):
                         except KeyError:
                             self.logwarn(
                                 "Object (type='{}', id='{}') has no 'sensors' field in his config file, none will be spawned.".format(spawn_object_request.type, spawn_object_request.id))
+
 
     def setup_sensors(self, sensors, attached_vehicle_id=None):
         """
